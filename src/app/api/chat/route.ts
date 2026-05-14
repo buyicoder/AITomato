@@ -93,16 +93,25 @@ export async function POST(req: NextRequest) {
             const parsed = JSON.parse(actionMatch[1]);
             action = parsed;
             quickActions = parsed.quickActions || [];
+            console.log("[chat] AI action:", parsed.action, "data:", JSON.stringify(parsed.data));
 
             // Execute the action and merge server-side data (e.g. sessionId)
-            const serverData = await executeAction(parsed);
+            let serverData: Record<string, unknown> | undefined;
+            try {
+              serverData = await executeAction(parsed);
+            } catch (e) {
+              console.error("[chat] executeAction failed:", e);
+            }
             if (serverData && Object.keys(serverData).length > 0) {
+              console.log("[chat] serverData merged:", JSON.stringify(serverData));
               parsed.data = { ...parsed.data, ...serverData };
               action = parsed;
             }
           } catch (e) {
             console.error("Failed to parse AI action JSON:", e, "Raw:", actionMatch[1]);
           }
+        } else {
+          console.warn("[chat] No action tag found in AI response. Full content (last 200 chars):", fullContent.slice(-200));
         }
 
         // Save AI message
