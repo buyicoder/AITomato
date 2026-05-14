@@ -12,15 +12,15 @@ export function MessageList() {
   const { messages } = useChatStore();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {messages.map((msg) => (
         <div
           key={msg.id}
-          className={`animate-fade-in-up flex gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+          className={`animate-fade-in-up flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
         >
           {/* Avatar */}
           <div
-            className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+            className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm ${
               msg.role === "user"
                 ? "bg-[var(--tomato)] text-white"
                 : "bg-[var(--surface-raised)] border border-[var(--border)]"
@@ -30,9 +30,9 @@ export function MessageList() {
           </div>
 
           {/* Bubble */}
-          <div className={`flex flex-col max-w-[80%] ${msg.role === "user" ? "items-end" : "items-start"}`}>
+          <div className={`flex flex-col max-w-[78%] ${msg.role === "user" ? "items-end" : "items-start"}`}>
             <div
-              className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
+              className={`rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm ${
                 msg.role === "user"
                   ? "bg-[var(--tomato)] text-white rounded-tr-md"
                   : "bg-[var(--surface-raised)] border border-[var(--border)] rounded-tl-md"

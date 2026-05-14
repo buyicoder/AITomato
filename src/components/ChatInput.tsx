@@ -12,7 +12,7 @@ export function ChatInput() {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
   }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -36,21 +36,23 @@ export function ChatInput() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-2">
-      <textarea
-        ref={textareaRef}
-        value={input}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        placeholder="输入你的想法，Enter 发送，Shift+Enter 换行..."
-        rows={1}
-        disabled={isLoading}
-        className="flex-1 resize-none rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm placeholder:text-[var(--muted-light)] focus:outline-none focus:ring-2 focus:ring-[var(--tomato)]/40 focus:border-[var(--tomato-light)] disabled:opacity-50 transition-shadow"
-      />
+    <form onSubmit={handleSubmit} className="flex items-end gap-3">
+      <div className="flex-1 relative">
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder="说说你想做什么..."
+          rows={1}
+          disabled={isLoading}
+          className="w-full resize-none rounded-2xl border border-[var(--border)] bg-[var(--background)] px-5 py-3 text-sm placeholder:text-[var(--muted-light)] focus:outline-none focus:ring-2 focus:ring-[var(--tomato)]/30 focus:border-[var(--tomato-light)] disabled:opacity-50 transition-all"
+        />
+      </div>
       <button
         type="submit"
         disabled={isLoading || !input.trim()}
-        className="shrink-0 rounded-xl bg-[var(--tomato)] text-white px-5 py-2.5 text-sm font-semibold hover:bg-[var(--tomato-dark)] active:scale-95 disabled:opacity-40 disabled:scale-100 transition-all"
+        className="shrink-0 rounded-2xl bg-[var(--tomato)] text-white px-6 py-3 text-sm font-semibold hover:bg-[var(--tomato-dark)] active:scale-95 disabled:opacity-40 disabled:scale-100 transition-all shadow-sm shadow-[var(--tomato)]/20"
       >
         {isLoading ? (
           <span className="dot-typing">
