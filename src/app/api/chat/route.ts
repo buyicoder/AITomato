@@ -181,26 +181,31 @@ async function executeAction(action: { action: string; data: Record<string, unkn
     case "start_pomodoro": {
       const taskId = String(data.taskId);
       const task = await prisma.task.findUnique({ where: { id: taskId } });
-      if (task) {
-        await prisma.task.update({
-          where: { id: taskId },
-          data: { status: "IN_PROGRESS" },
-        });
-        const session = await prisma.pomodoroSession.create({
-          data: {
-            taskId,
-            duration: Number(data.duration) || 25,
-            userId: USER_ID,
-          },
-        });
-        return {
-          sessionId: session.id,
+      if (!task) break;
+
+      // Stop any existing active session first
+      await prisma.pomodoroSession.updateMany({
+        where: { userId: USER_ID, status: { in: ["RUNNING", "PAUSED"] } },
+        data: { status: "CANCELLED", endTime: new Date() },
+      });
+
+      await prisma.task.update({
+        where: { id: taskId },
+        data: { status: "IN_PROGRESS" },
+      });
+      const session = await prisma.pomodoroSession.create({
+        data: {
           taskId,
-          taskTitle: task.title,
           duration: Number(data.duration) || 25,
-        };
-      }
-      break;
+          userId: USER_ID,
+        },
+      });
+      return {
+        sessionId: session.id,
+        taskId,
+        taskTitle: task.title,
+        duration: Number(data.duration) || 25,
+      };
     }
     case "stop_pomodoro": {
       const active = await prisma.pomodoroSession.findFirst({
