@@ -72,22 +72,20 @@ export default function Home() {
             )}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`shrink-0 w-8 h-8 rounded-lg border border-[var(--border)] flex items-center justify-center text-sm hover:bg-[var(--surface-hover)] transition-colors ${
-                sidebarOpen ? "text-[var(--tomato)]" : "text-[var(--muted-light)]"
-              }`}
+              className="shrink-0 w-8 h-8 rounded-lg border border-[var(--border)] flex items-center justify-center text-sm hover:bg-[var(--surface-hover)] transition-colors text-[var(--muted)]"
               title={sidebarOpen ? "收起侧边栏" : "展开侧边栏"}
             >
-              {sidebarOpen ? "⟩" : "⟨"}
+              {sidebarOpen ? "◀" : "▶"}
             </button>
           </div>
         </header>
         <ChatContainer />
       </div>
 
-      {/* Sidebar — always at edge, no overlay */}
+      {/* Sidebar — at edge, instant toggle, no animation */}
       <aside
-        className="shrink-0 border-l border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all duration-300 ease-in-out"
-        style={{ width: sidebarOpen ? "288px" : "0px", opacity: sidebarOpen ? 1 : 0 }}
+        className="shrink-0 border-l border-[var(--border)] bg-[var(--surface)] overflow-hidden"
+        style={{ width: sidebarOpen ? "288px" : "0px" }}
       >
         <div style={{ width: "288px" }} className="h-full">
           <TimerWidget />
