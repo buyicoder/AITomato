@@ -20,31 +20,34 @@ export async function chatCompletionStream(
 export async function extractAction(
   messages: { role: string; content: string }[],
 ) {
-  const schema = `Analyze the conversation above. Output ONLY a JSON object (no markdown, no extra text):
-{
-  "action": "chat",
-  "data": {},
-  "quickActions": []
-}
+  const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
 
-action must be one of:
-- "chat": casual talk. data: {}
-- "create_task": data: {"title": string, "estimatedPomodoros"?: number, "priority"?: "LOW"|"MEDIUM"|"HIGH", "dueDate"?: string, "description"?: string}
-- "update_task": data: {"id": string, ...fields}
-- "complete_task": data: {"id": string}
-- "start_pomodoro": data: {"taskId": string, "taskTitle": string, "duration"?: number}
-- "stop_pomodoro": data: {}
-- "get_insights": data: {}
+  const schema = `Look at the LAST user message in the conversation above. The assistant has already replied.
 
-For start_pomodoro, taskId MUST be from the task list (IDs shown as ID=xxx).
-If no matching task, use "chat" and suggest creating one first.
-quickActions: 1-3 short Chinese button labels for follow-up actions.`;
+Based on the user's latest message ("${lastUserMsg?.content || ""}"), output ONLY a JSON object:
+{"action":"...","data":{...},"quickActions":[...]}
+
+Choose action by matching user's words:
+- "添加任务：XXX" or "创建任务：XXX" or "新建任务" → "create_task"
+  data: {"title":"XXX", "estimatedPomodoros":<number>, "priority":"MEDIUM", "dueDate":"<if mentioned>"}
+- "开始做XXX" or "开始XXX" or "计时XXX" → "start_pomodoro"
+  data: (find the task with matching title from the task list above, use its ID and title)
+- "停止计时" or "暂停" or "结束番茄" → "stop_pomodoro", data: {}
+- "完成XXX" or "做完了" or "搞定XXX" → "complete_task"
+  data: (find task ID from list above by title)
+- "今天做了什么" or "总结" or "报告" → "get_insights", data: {}
+- Otherwise → "chat", data: {}
+
+IMPORTANT:
+- For start_pomodoro/complete_task/update_task, extract the ID from the task list (ID=xxx).
+- If the task isn't in the list, use "chat" and suggest creating it.
+- quickActions: 1-3 short Chinese suggestion buttons for the NEXT thing the user might do.`;
 
   const response = await deepseek.chat.completions.create({
     model: "deepseek-chat",
     messages: [
       ...messages,
-      { role: "user", content: schema },
+      { role: "system", content: schema },
     ] as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
     temperature: 0.1,
     max_tokens: 512,
