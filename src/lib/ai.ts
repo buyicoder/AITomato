@@ -29,7 +29,8 @@ Based on the user's latest message ("${lastUserMsg?.content || ""}"), output ONL
 
 Choose action by matching user's words:
 - "添加任务：XXX" or "创建任务：XXX" or "新建任务" → "create_task"
-  data: {"title":"XXX", "estimatedPomodoros":<number>, "priority":"MEDIUM", "dueDate":"<if mentioned>"}
+  data: {"title":"XXX", "estimatedPomodoros":<number>, "priority":"MEDIUM"}
+  Only include dueDate if a valid YYYY-MM-DD date is mentioned; skip it for Chinese dates like "明天"/"后天"
 - "开始做XXX" or "开始XXX" or "计时XXX" → "start_pomodoro"
   data: (find the task with matching title from the task list above, use its ID and title)
 - "停止计时" or "暂停" or "结束番茄" → "stop_pomodoro", data: {}

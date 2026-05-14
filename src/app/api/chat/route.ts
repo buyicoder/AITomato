@@ -157,13 +157,18 @@ async function executeAction(action: { action: string; data: Record<string, unkn
 
   switch (actionType) {
     case "create_task": {
+      let dueDate: Date | null = null;
+      if (data.dueDate) {
+        const d = new Date(String(data.dueDate));
+        if (!isNaN(d.getTime())) dueDate = d;
+      }
       const task = await prisma.task.create({
         data: {
           title: String(data.title || "未命名任务"),
           description: data.description ? String(data.description) : null,
           priority: String(data.priority || "MEDIUM"),
           estimatedPomodoros: Number(data.estimatedPomodoros) || 1,
-          dueDate: data.dueDate ? new Date(String(data.dueDate)) : null,
+          dueDate,
           userId: USER_ID,
         },
       });
