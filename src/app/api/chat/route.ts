@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { chatCompletionStream } from "@/lib/ai";
+import { chatCompletionStream, extractAction } from "@/lib/ai";
 import { buildSystemPrompt } from "@/lib/prompts";
 
 const USER_ID = "default";
@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
       let fullContent = "";
 
       try {
+        // Step 1: Stream the AI's natural language response
         for await (const chunk of stream) {
           const delta = chunk.choices?.[0]?.delta?.content;
           if (delta) {
@@ -83,42 +84,39 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Parse action from the full response
-        const actionMatch = fullContent.match(/<\|action\|>\s*([\s\S]+?)\s*<\|action\|>/);
+        // Step 2: Extract action via JSON-mode call (reliable structured output)
         let action = null;
         let quickActions: string[] = [];
+        try {
+          const actionResult = await extractAction([
+            ...chatMessages,
+            { role: "assistant", content: fullContent },
+          ]);
+          action = { action: actionResult.action, data: actionResult.data || {} };
+          quickActions = actionResult.quickActions || [];
+          console.log("[chat] Extracted action:", actionResult.action, "data:", JSON.stringify(actionResult.data));
 
-        if (actionMatch) {
-          try {
-            const parsed = JSON.parse(actionMatch[1]);
-            action = parsed;
-            quickActions = parsed.quickActions || [];
-            console.log("[chat] AI action:", parsed.action, "data:", JSON.stringify(parsed.data));
-
-            // Execute the action and merge server-side data (e.g. sessionId)
-            let serverData: Record<string, unknown> | undefined;
+          // Execute the action and merge server-side data (e.g. sessionId)
+          if (action.action && action.action !== "chat") {
             try {
-              serverData = await executeAction(parsed);
+              const serverData = await executeAction(action);
+              if (serverData && Object.keys(serverData).length > 0) {
+                console.log("[chat] Server data merged:", JSON.stringify(serverData));
+                action.data = { ...action.data, ...serverData };
+              }
             } catch (e) {
               console.error("[chat] executeAction failed:", e);
             }
-            if (serverData && Object.keys(serverData).length > 0) {
-              console.log("[chat] serverData merged:", JSON.stringify(serverData));
-              parsed.data = { ...parsed.data, ...serverData };
-              action = parsed;
-            }
-          } catch (e) {
-            console.error("Failed to parse AI action JSON:", e, "Raw:", actionMatch[1]);
           }
-        } else {
-          console.warn("[chat] No action tag found in AI response. Full content (last 200 chars):", fullContent.slice(-200));
+        } catch (e) {
+          console.error("[chat] Action extraction failed:", e);
         }
 
         // Save AI message
         const aiMessage = await prisma.chatMessage.create({
           data: {
             role: "assistant",
-            content: fullContent.replace(/<\|action\|>\s*[\s\S]+?\s*<\|action\|>/, "").trim(),
+            content: fullContent.trim(),
             metadata: JSON.stringify({ action, quickActions }),
             userId: USER_ID,
           },
@@ -136,6 +134,7 @@ export async function POST(req: NextRequest) {
         );
         controller.close();
       } catch (error) {
+        console.error("[chat] Stream error:", error);
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ type: "error", content: String(error) })}\n\n`),
         );
@@ -190,7 +189,7 @@ async function executeAction(action: { action: string; data: Record<string, unkn
     case "start_pomodoro": {
       const taskId = String(data.taskId);
       let task = await prisma.task.findUnique({ where: { id: taskId } });
-      // Fallback: try matching by title if taskId lookup fails
+      // Fallback: try matching by title
       if (!task && data.taskTitle) {
         task = await prisma.task.findFirst({
           where: { userId: USER_ID, title: String(data.taskTitle) },
@@ -208,19 +207,19 @@ async function executeAction(action: { action: string; data: Record<string, unkn
       });
 
       await prisma.task.update({
-        where: { id: taskId },
+        where: { id: task.id },
         data: { status: "IN_PROGRESS" },
       });
       const session = await prisma.pomodoroSession.create({
         data: {
-          taskId,
+          taskId: task.id,
           duration: Number(data.duration) || 25,
           userId: USER_ID,
         },
       });
       return {
         sessionId: session.id,
-        taskId,
+        taskId: task.id,
         taskTitle: task.title,
         duration: Number(data.duration) || 25,
       };
