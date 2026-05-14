@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useChatStore, type Message } from "@/stores/useChatStore";
+import { useTimerStore } from "@/stores/useTimerStore";
 
 export function useChat() {
   const { addMessage, appendContent, setAction, setLoading, isLoading } =
@@ -60,6 +61,17 @@ export function useChat() {
               } else if (data.type === "done") {
                 if (data.action) {
                   setAction(assistantId, data.action, data.quickActions || []);
+                  // Start/stop frontend timer based on action type
+                  if (data.action.action === "start_pomodoro" && data.action.data.sessionId) {
+                    useTimerStore.getState().startTimer({
+                      sessionId: String(data.action.data.sessionId),
+                      taskId: String(data.action.data.taskId || ""),
+                      taskTitle: String(data.action.data.taskTitle || ""),
+                      duration: Number(data.action.data.duration) || 25,
+                    });
+                  } else if (data.action.action === "stop_pomodoro") {
+                    useTimerStore.getState().stopTimer();
+                  }
                 }
               } else if (data.type === "error") {
                 appendContent(assistantId, "\n\n⚠️ 出错了，请重试");

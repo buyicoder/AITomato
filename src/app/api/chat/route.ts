@@ -94,8 +94,12 @@ export async function POST(req: NextRequest) {
             action = parsed;
             quickActions = parsed.quickActions || [];
 
-            // Execute the action
-            await executeAction(parsed);
+            // Execute the action and merge server-side data (e.g. sessionId)
+            const serverData = await executeAction(parsed);
+            if (serverData && Object.keys(serverData).length > 0) {
+              parsed.data = { ...parsed.data, ...serverData };
+              action = parsed;
+            }
           } catch {
             // JSON parse failed, treat as plain chat
           }
@@ -140,12 +144,12 @@ export async function POST(req: NextRequest) {
   });
 }
 
-async function executeAction(action: { action: string; data: Record<string, unknown> }) {
+async function executeAction(action: { action: string; data: Record<string, unknown> }): Promise<Record<string, unknown> | undefined> {
   const { action: actionType, data } = action;
 
   switch (actionType) {
     case "create_task": {
-      await prisma.task.create({
+      const task = await prisma.task.create({
         data: {
           title: String(data.title || "未命名任务"),
           description: data.description ? String(data.description) : null,
@@ -155,7 +159,7 @@ async function executeAction(action: { action: string; data: Record<string, unkn
           userId: USER_ID,
         },
       });
-      break;
+      return { taskId: task.id };
     }
     case "update_task": {
       const id = String(data.id);
@@ -182,13 +186,19 @@ async function executeAction(action: { action: string; data: Record<string, unkn
           where: { id: taskId },
           data: { status: "IN_PROGRESS" },
         });
-        await prisma.pomodoroSession.create({
+        const session = await prisma.pomodoroSession.create({
           data: {
             taskId,
             duration: Number(data.duration) || 25,
             userId: USER_ID,
           },
         });
+        return {
+          sessionId: session.id,
+          taskId,
+          taskTitle: task.title,
+          duration: Number(data.duration) || 25,
+        };
       }
       break;
     }
@@ -215,4 +225,5 @@ async function executeAction(action: { action: string; data: Record<string, unkn
     default:
       break;
   }
+  return undefined;
 }
