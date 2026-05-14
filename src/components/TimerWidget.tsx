@@ -93,6 +93,32 @@ export function TimerWidget() {
     sync();
   }, []);
 
+  // Poll server for active sessions when idle — belt-and-suspenders fallback
+  useEffect(() => {
+    if (isRunning) return;
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch("/api/pomodoro/status");
+        const data = await res.json();
+        if (data.active) {
+          console.log("[TimerWidget] Poll found active session, starting timer");
+          useTimerStore.getState().startTimer({
+            sessionId: data.sessionId,
+            taskId: data.taskId || "",
+            taskTitle: data.taskTitle,
+            duration: data.duration,
+            type: data.type,
+          });
+          useTimerStore.setState({
+            remainingSeconds: data.remainingSeconds,
+            endAt: Date.now() + data.remainingSeconds * 1000,
+          });
+        }
+      } catch {}
+    }, 2000);
+    return () => clearInterval(id);
+  }, [isRunning]);
+
   // Tick every second
   useEffect(() => {
     if (!isRunning || isPaused) {
