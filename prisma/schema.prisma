@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String?  @unique
+  createdAt DateTime @default(now())
+
+  tasks            Task[]
+  pomodoroSessions PomodoroSession[]
+  chatMessages     ChatMessage[]
+  dailyInsights    DailyInsight[]
+}
+
+model Task {
+  id                 String    @id @default(cuid())
+  title              String
+  description        String?
+  estimatedPomodoros Int       @default(1)
+  completedPomodoros Int       @default(0)
+  priority           String    @default("MEDIUM")
+  dueDate            DateTime?
+  status             String    @default("TODO")
+  userId             String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id])
+  pomodoroSessions  PomodoroSession[]
+}
+
+model PomodoroSession {
+  id        String    @id @default(cuid())
+  taskId    String?
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  duration  Int       @default(25)
+  type      String    @default("FOCUS")
+  status    String    @default("RUNNING")
+  userId    String
+  createdAt DateTime  @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  task Task? @relation(fields: [taskId], references: [id])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String
+  content   String
+  metadata  String?
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model DailyInsight {
+  id                String   @id @default(cuid())
+  date              DateTime
+  completedPomodoros Int     @default(0)
+  focusMinutes      Int      @default(0)
+  summary           String?
+  userId            String
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([date, userId])
+}

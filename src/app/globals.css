@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafafa;
+  --foreground: #1a1a1a;
+  --tomato: #e53935;
+  --tomato-light: #ff6f60;
+  --tomato-dark: #ab000d;
+  --surface: #ffffff;
+  --surface-hover: #f5f5f5;
+  --border: #e0e0e0;
+  --muted: #757575;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d0d0d;
+    --foreground: #ededed;
+    --tomato: #ff5252;
+    --tomato-light: #ff867c;
+    --tomato-dark: #c50e29;
+    --surface: #1a1a1a;
+    --surface-hover: #242424;
+    --border: #333;
+    --muted: #999;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-tomato: var(--tomato);
+  --color-tomato-light: var(--tomato-light);
+  --color-tomato-dark: var(--tomato-dark);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+/* Chat message animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Timer ring */
+.timer-ring {
+  transition: stroke-dashoffset 1s linear;
+}
