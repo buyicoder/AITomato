@@ -23,27 +23,8 @@ function playChime() {
   } catch {}
 }
 
-function MobileTimerBar() {
-  const { isRunning, isPaused, taskTitle, remainingSeconds, type } = useTimerStore();
-  if (!isRunning) return null;
-  const m = Math.floor(remainingSeconds / 60);
-  const s = remainingSeconds % 60;
-  return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[var(--surface-raised)] border-b border-[var(--border)] px-4 py-2 flex items-center gap-3 shadow-sm">
-      <span className={`text-lg ${isPaused ? "" : "timer-active-indicator"}`}>🍅</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate">{taskTitle || "专注中"}</p>
-        <p className="text-xs text-[var(--muted)]">
-          {String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
-          {" · "}{isPaused ? "已暂停" : type === "BREAK" ? "休息" : "专注"}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
-  const [mobileTimerOpen, setMobileTimerOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const isRunning = useTimerStore((s) => s.isRunning);
   const remainingSeconds = useTimerStore((s) => s.remainingSeconds);
 
@@ -72,51 +53,46 @@ export default function Home() {
   }, [remainingSeconds, isRunning]);
 
   return (
-    <>
-      <MobileTimerBar />
-      <main
-        className={`flex max-w-6xl mx-auto overflow-hidden ${isRunning ? "pt-10 md:pt-0" : ""}`}
-        style={{ height: "100dvh" }}
-      >
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="flex items-center gap-3 px-5 py-3.5 border-b border-[var(--border)] shrink-0 bg-[var(--surface)]">
-            <span className="text-2xl">🍅</span>
-            <div>
-              <h1 className="font-bold text-lg tracking-tight leading-none">AITomato</h1>
-              <p className="text-[10px] text-[var(--muted-light)] hidden sm:block">AI 番茄工作法</p>
-            </div>
-            {isRunning && (
-              <button
-                onClick={() => setMobileTimerOpen(!mobileTimerOpen)}
-                className="md:hidden ml-auto text-sm font-semibold text-[var(--tomato)] bg-[var(--tomato-soft)] px-3 py-1.5 rounded-full"
-              >
-                {mobileTimerOpen ? "隐藏计时" : "🍅 计时中"}
-              </button>
-            )}
-          </header>
-          <ChatContainer />
-        </div>
+    <main className="flex max-w-6xl mx-auto overflow-hidden" style={{ height: "100dvh" }}>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="flex items-center gap-3 px-5 py-3.5 border-b border-[var(--border)] shrink-0 bg-[var(--surface)]">
+          <span className="text-2xl shrink-0">🍅</span>
+          <div className="min-w-0">
+            <h1 className="font-bold text-lg tracking-tight leading-none">AITomato</h1>
+            <p className="text-[10px] text-[var(--muted-light)] hidden sm:block">AI 番茄工作法</p>
+          </div>
 
-        {/* Sidebar Timer */}
-        <aside
-          className={`w-72 shrink-0 flex-col bg-[var(--surface)] ${
-            mobileTimerOpen
-              ? "flex absolute inset-y-0 right-0 z-40 shadow-2xl md:shadow-none"
-              : "hidden"
-          } md:flex md:relative md:border-l md:border-[var(--border)]`}
-        >
-          {mobileTimerOpen && (
+          {/* Timer running indicator + sidebar toggle */}
+          <div className="ml-auto flex items-center gap-2">
+            {isRunning && (
+              <span className="text-xs font-medium text-[var(--tomato)] bg-[var(--tomato-soft)] px-2.5 py-1 rounded-full hidden sm:block">
+                🍅 计时中
+              </span>
+            )}
             <button
-              onClick={() => setMobileTimerOpen(false)}
-              className="md:hidden absolute top-3 right-3 text-[var(--muted)] text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--surface-hover)] z-10"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`shrink-0 w-8 h-8 rounded-lg border border-[var(--border)] flex items-center justify-center text-sm hover:bg-[var(--surface-hover)] transition-colors ${
+                sidebarOpen ? "text-[var(--tomato)]" : "text-[var(--muted-light)]"
+              }`}
+              title={sidebarOpen ? "收起侧边栏" : "展开侧边栏"}
             >
-              ✕
+              {sidebarOpen ? "⟩" : "⟨"}
             </button>
-          )}
+          </div>
+        </header>
+        <ChatContainer />
+      </div>
+
+      {/* Sidebar — always at edge, no overlay */}
+      <aside
+        className="shrink-0 border-l border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ width: sidebarOpen ? "288px" : "0px", opacity: sidebarOpen ? 1 : 0 }}
+      >
+        <div style={{ width: "288px" }} className="h-full">
           <TimerWidget />
-        </aside>
-      </main>
-    </>
+        </div>
+      </aside>
+    </main>
   );
 }
