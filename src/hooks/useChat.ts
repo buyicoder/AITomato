@@ -65,11 +65,12 @@ export function useChat() {
                 appendContent(assistantId, "\n\n⚠️ 出错了，请重试");
               }
             } catch {
-              // skip malformed JSON
+              // skip malformed SSE chunk
             }
           }
         }
-      } catch {
+      } catch (e) {
+        console.error("Chat SSE stream failed:", e);
         addMessage({
           id: (Date.now() + 2).toString(),
           role: "assistant",

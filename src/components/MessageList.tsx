@@ -2,10 +2,19 @@
 
 import { useChatStore } from "@/stores/useChatStore";
 import { PomodoroCard } from "./PomodoroCard";
+import { DEFAULT_LOCALE } from "@/lib/constants";
+
+const timeCache = new Map<string, string>();
 
 function formatTime(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+  const cached = timeCache.get(iso);
+  if (cached) return cached;
+  const formatted = new Date(iso).toLocaleTimeString(DEFAULT_LOCALE, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  timeCache.set(iso, formatted);
+  return formatted;
 }
 
 export function MessageList() {

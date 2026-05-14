@@ -9,8 +9,15 @@ interface TimerState {
   duration: number;
   remainingSeconds: number;
   type: "FOCUS" | "BREAK";
+  endAt: number;
 
-  startTimer: (opts: { sessionId: string; taskId: string; taskTitle: string; duration: number; type?: "FOCUS" | "BREAK" }) => void;
+  startTimer: (opts: {
+    sessionId: string;
+    taskId: string;
+    taskTitle: string;
+    duration: number;
+    type?: "FOCUS" | "BREAK";
+  }) => void;
   tick: () => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
@@ -26,8 +33,10 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   duration: 25,
   remainingSeconds: 0,
   type: "FOCUS",
+  endAt: 0,
 
-  startTimer: (opts) =>
+  startTimer: (opts) => {
+    const totalMs = opts.duration * 60 * 1000;
     set({
       isRunning: true,
       isPaused: false,
@@ -37,17 +46,29 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       duration: opts.duration,
       remainingSeconds: opts.duration * 60,
       type: opts.type || "FOCUS",
-    }),
+      endAt: Date.now() + totalMs,
+    });
+  },
 
   tick: () => {
-    const { remainingSeconds } = get();
-    if (remainingSeconds <= 0) return;
-    set({ remainingSeconds: remainingSeconds - 1 });
+    const { endAt } = get();
+    const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+    set({ remainingSeconds: remaining });
   },
 
   pauseTimer: () => set({ isPaused: true }),
 
-  resumeTimer: () => set({ isPaused: false }),
+  resumeTimer: () => {
+    const { remainingSeconds } = get();
+    if (remainingSeconds <= 0) {
+      set({ isRunning: false, isPaused: false, remainingSeconds: 0, endAt: 0 });
+      return;
+    }
+    set({
+      isPaused: false,
+      endAt: Date.now() + remainingSeconds * 1000,
+    });
+  },
 
   stopTimer: () =>
     set({
@@ -58,7 +79,6 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       taskTitle: "",
       remainingSeconds: 0,
       type: "FOCUS",
+      endAt: 0,
     }),
 }));
-
-// The timer interval will be managed in the TimerWidget component
