@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Parse action from the full response
-        const actionMatch = fullContent.match(/<\|action\|>(.+?)<\|action\|>/);
+        const actionMatch = fullContent.match(/<\|action\|>\s*([\s\S]+?)\s*<\|action\|>/);
         let action = null;
         let quickActions: string[] = [];
 
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
         const aiMessage = await prisma.chatMessage.create({
           data: {
             role: "assistant",
-            content: fullContent.replace(/<\|action\|>.+?<\|action\|>/, "").trim(),
+            content: fullContent.replace(/<\|action\|>\s*[\s\S]+?\s*<\|action\|>/, "").trim(),
             metadata: JSON.stringify({ action, quickActions }),
             userId: USER_ID,
           },
