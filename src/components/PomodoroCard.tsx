@@ -13,11 +13,11 @@ export function PomodoroCard({ taskTitle, duration }: PomodoroCardProps) {
   const type = useTimerStore((s) => s.type);
 
   return (
-    <div className="mt-3 p-3 rounded-xl bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 border border-red-200 dark:border-red-800">
+    <div className="mt-2.5 p-3 rounded-xl bg-[var(--tomato-soft)] border border-[var(--tomato)]/20">
       <div className="flex items-center gap-3">
-        <span className="text-2xl">🍅</span>
-        <div>
-          <p className="text-sm font-medium">{taskTitle}</p>
+        <div className={`text-2xl ${isRunning ? "timer-active-indicator" : ""}`}>🍅</div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold truncate">{taskTitle}</p>
           <p className="text-xs text-[var(--muted)]">
             {isRunning && remainingSeconds > 0
               ? `剩余 ${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`

@@ -6,74 +6,88 @@
   --tomato: #e53935;
   --tomato-light: #ff6f60;
   --tomato-dark: #ab000d;
+  --tomato-soft: #fce4e4;
   --surface: #ffffff;
-  --surface-hover: #f5f5f5;
-  --border: #e0e0e0;
-  --muted: #757575;
+  --surface-hover: #f0f0f0;
+  --surface-raised: #ffffff;
+  --border: #e8e8e8;
+  --border-strong: #d0d0d0;
+  --muted: #6b6b6b;
+  --muted-light: #9e9e9e;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0d0d0d;
+    --background: #0f0f0f;
     --foreground: #ededed;
-    --tomato: #ff5252;
-    --tomato-light: #ff867c;
-    --tomato-dark: #c50e29;
-    --surface: #1a1a1a;
-    --surface-hover: #242424;
-    --border: #333;
-    --muted: #999;
+    --tomato: #ff6b6b;
+    --tomato-light: #ff8a80;
+    --tomato-dark: #e57373;
+    --tomato-soft: #2a1515;
+    --surface: #1c1c1c;
+    --surface-hover: #282828;
+    --surface-raised: #242424;
+    --border: #333333;
+    --border-strong: #444444;
+    --muted: #a0a0a0;
+    --muted-light: #707070;
   }
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-tomato: var(--tomato);
-  --color-tomato-light: var(--tomato-light);
-  --color-tomato-dark: var(--tomato-dark);
-  --color-surface: var(--surface);
-  --color-surface-hover: var(--surface-hover);
-  --color-border: var(--border);
-  --color-muted: var(--muted);
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styles */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
+::selection {
+  background: var(--tomato);
+  color: white;
 }
 
-/* Chat message animation */
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-light); }
+
+/* Chat message entrance */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up {
-  animation: fadeInUp 0.3s ease-out;
+  animation: fadeInUp 0.35s ease-out both;
 }
 
-/* Timer ring */
+/* Smooth timer ring */
 .timer-ring {
-  transition: stroke-dashoffset 1s linear;
+  transition: stroke-dashoffset 0.3s linear;
+}
+
+/* Loading dot bounce */
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-4px); }
+}
+.dot-typing {
+  display: inline-flex; gap: 3px; align-items: center;
+}
+.dot-typing span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--muted-light);
+  animation: dotBounce 1.2s infinite ease-in-out;
+}
+.dot-typing span:nth-child(2) { animation-delay: 0.15s; }
+.dot-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+/* Pulse for timer active state */
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.timer-active-indicator {
+  animation: pulse-ring 2s ease-in-out infinite;
 }

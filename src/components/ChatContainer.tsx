@@ -2,12 +2,20 @@
 
 import { useRef, useEffect } from "react";
 import { useChatStore } from "@/stores/useChatStore";
+import { useChat } from "@/hooks/useChat";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { QuickActions } from "./QuickActions";
 
+const SUGGESTIONS = [
+  "添加任务：写周报，明天交",
+  "开始做写周报",
+  "今天做了什么",
+];
+
 export function ChatContainer() {
   const { isLoading, messages } = useChatStore();
+  const { sendMessage } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,15 +29,25 @@ export function ChatContainer() {
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <span className="text-5xl mb-4">🍅</span>
-            <h2 className="text-xl font-semibold mb-2">欢迎使用 AITomato</h2>
-            <p className="text-[var(--muted)] max-w-sm leading-relaxed">
-              用自然语言管理你的专注时间。
+            <div className="text-6xl mb-5 opacity-80">🍅</div>
+            <h2 className="text-xl font-bold mb-2 tracking-tight">欢迎使用 AITomato</h2>
+            <p className="text-[var(--muted)] max-w-sm leading-relaxed mb-6 text-sm">
+              用自然语言管理你的专注时间，
               <br />
-              试试说：「添加任务：写周报，明天交」
-              <br />
-              或者直接说：「开始干活」
+              AI 帮你搞定一切。
             </p>
+            <div className="flex flex-col gap-2 w-full max-w-[260px]">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => sendMessage(s)}
+                  disabled={isLoading}
+                  className="text-sm text-[var(--muted)] border border-[var(--border)] rounded-xl px-4 py-2.5 hover:bg-[var(--tomato-soft)] hover:text-[var(--tomato)] hover:border-[var(--tomato-light)] active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <MessageList />
