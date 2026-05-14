@@ -100,8 +100,8 @@ export async function POST(req: NextRequest) {
               parsed.data = { ...parsed.data, ...serverData };
               action = parsed;
             }
-          } catch {
-            // JSON parse failed, treat as plain chat
+          } catch (e) {
+            console.error("Failed to parse AI action JSON:", e, "Raw:", actionMatch[1]);
           }
         }
 
@@ -180,8 +180,17 @@ async function executeAction(action: { action: string; data: Record<string, unkn
     }
     case "start_pomodoro": {
       const taskId = String(data.taskId);
-      const task = await prisma.task.findUnique({ where: { id: taskId } });
-      if (!task) break;
+      let task = await prisma.task.findUnique({ where: { id: taskId } });
+      // Fallback: try matching by title if taskId lookup fails
+      if (!task && data.taskTitle) {
+        task = await prisma.task.findFirst({
+          where: { userId: USER_ID, title: String(data.taskTitle) },
+        });
+      }
+      if (!task) {
+        console.error("start_pomodoro: task not found. taskId:", taskId, "taskTitle:", data.taskTitle);
+        break;
+      }
 
       // Stop any existing active session first
       await prisma.pomodoroSession.updateMany({

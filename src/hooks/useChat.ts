@@ -60,15 +60,19 @@ export function useChat() {
                 appendContent(assistantId, data.content);
               } else if (data.type === "done") {
                 if (data.action) {
+                  console.log("[useChat] done event, action:", data.action.action, "data:", JSON.stringify(data.action.data));
                   setAction(assistantId, data.action, data.quickActions || []);
                   // Start/stop frontend timer based on action type
                   if (data.action.action === "start_pomodoro" && data.action.data.sessionId) {
+                    console.log("[useChat] starting frontend timer with sessionId:", data.action.data.sessionId);
                     useTimerStore.getState().startTimer({
                       sessionId: String(data.action.data.sessionId),
                       taskId: String(data.action.data.taskId || ""),
                       taskTitle: String(data.action.data.taskTitle || ""),
                       duration: Number(data.action.data.duration) || 25,
                     });
+                  } else if (data.action.action === "start_pomodoro") {
+                    console.warn("[useChat] start_pomodoro action missing sessionId:", data.action.data);
                   } else if (data.action.action === "stop_pomodoro") {
                     useTimerStore.getState().stopTimer();
                   }
