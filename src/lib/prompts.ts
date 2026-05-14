@@ -5,7 +5,7 @@ export function buildSystemPrompt(context: {
 }) {
   const taskList = context.tasks
     .filter((t) => t.status !== "DONE")
-    .map((t) => `- [${t.status}] ${t.title} (优先级:${t.priority}, ${t.completedPomodoros}/${t.estimatedPomodoros}🍅)`)
+    .map((t) => `- [${t.status}] ID=${t.id} ${t.title} (优先级:${t.priority}, ${t.completedPomodoros}/${t.estimatedPomodoros}🍅)`)
     .join("\n");
 
   const doneTasks = context.tasks
@@ -50,7 +50,7 @@ ${doneTasks || "（暂无）"}
 - create_task: data 需要 title, 可选 estimatedPomodoros, priority, dueDate, description
 - update_task: data 需要 id, 其他字段可选
 - complete_task: data 需要 id
-- start_pomodoro: data 需要 taskId, 可选 duration(默认25分钟)
+- start_pomodoro: data 需要 taskId (必须使用上面任务列表中的真实ID), 可选 duration(默认25分钟)
 - stop_pomodoro: data 留空即可
 - get_insights: data 留空
 - chat: 纯聊天，data 留空
